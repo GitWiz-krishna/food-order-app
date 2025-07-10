@@ -1,0 +1,203 @@
+/* Base Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%);
+  color: #333;
+  padding: 20px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.custom-navbar {
+  background-color: #4b9cd3;
+}
+
+.btn-outline-light {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.btn-outline-light:hover {
+  background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+  border-color: #fff;
+  color: #fff;
+}
+
+.btn-success,
+.btn-primary,
+.btn-warning {
+  background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%) !important;
+  border: none;
+  color: #fff;
+}
+
+.btn-success:hover,
+.btn-primary:hover,
+.btn-warning:hover {
+  opacity: 0.9;
+}
+
+body.dark {
+  background: #121212;
+  color: #f0f0f0;
+}
+
+body.dark .custom-navbar {
+  background: #222;
+}
+
+/* Dark Mode */
+body.dark {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+/* Menu Layout */
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Food Menu Section */
+#food-menu {
+  flex: 1;
+  min-width: 300px;
+}
+
+.menu-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.food-item {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Slight lift + shadow on hover */
+.food-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.food-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.food-item h3 {
+  margin: 10px 0 5px;
+}
+
+.food-item p {
+  font-weight: bold;
+  color: #28a745;
+}
+
+.food-item button {
+  margin-top: 8px;
+}
+
+/* Cart Section */
+#cart {
+  flex: 1;
+  min-width: 300px;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.cart-item span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.cart-item button {
+  font-size: 0.8rem;
+  padding: 3px 6px;
+  border-radius: 3px;
+}
+
+/* Checkout Form */
+#checkout-form {
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#checkout-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+#checkout-form button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Hidden Utility */
+.hidden {
+  display: none;
+}
+
+/* Dark Mode Overrides */
+body.dark .food-item,
+body.dark #cart,
+body.dark #checkout-form {
+  background-color: #222;
+  color: #fff;
+}
+
+body.dark .food-item p {
+  color: #90ee90;
+}
+
+body.dark .btn,
+body.dark input {
+  background-color: #333 !important;
+  color: #fff !important;
+  border-color: #444 !important;
+}
+
+.menu-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+.food-item.card {
+  height: 100%;
+}
+.card img {
+  height: 180px;
+  object-fit: cover;
+}
