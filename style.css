@@ -171,17 +171,36 @@ main {
 }
 
 /* Dark Mode Overrides */
+/* Dark Mode Overrides */
 body.dark .food-item,
 body.dark #cart,
-body.dark #checkout-form {
+body.dark #checkout-form,
+body.dark .cart-summary,
+body.dark .card,
+body.dark .card-body {
   background-color: #222;
   color: #fff;
 }
 
+/* Card text and descriptions */
+body.dark .food-item p,
+body.dark .card p,
+body.dark .card-title,
+body.dark .card-text {
+  color: #f8f9fa;
+}
+
+/* Highlight food descriptions if needed */
 body.dark .food-item p {
   color: #90ee90;
 }
 
+/* Cart summary strong text */
+body.dark .cart-summary strong {
+  color: #ffffff;
+}
+
+/* Buttons and inputs */
 body.dark .btn,
 body.dark input {
   background-color: #333 !important;
@@ -200,4 +219,17 @@ body.dark input {
 .card img {
   height: 180px;
   object-fit: cover;
+}
+/* Fix for dark mode text not changing */
+body.dark .card p,
+body.dark .card-title,
+body.dark .card-text,
+body.dark .cart-summary,
+body.dark .cart-summary * {
+  color: #f8f9fa !important;
+}
+
+body.dark .cart-summary {
+  background-color: #2d2d2d !important;
+  border-color: #444 !important;
 }

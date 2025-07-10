@@ -154,91 +154,232 @@ const menuData = [
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let currentCategory = "all";
 
+// DOM Content Loaded
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize based on current page
+  if (document.getElementById("menu-items")) {
+    renderMenu();
+  }
+
+  if (document.getElementById("cart-items")) {
+    renderCartPage();
+  }
+
+  updateCartCount();
+});
+
 // Render food menu
 function renderMenu() {
   const container = document.getElementById("menu-items");
-  const searchTerm = document.getElementById("search").value.toLowerCase();
+  const searchTerm =
+    document.getElementById("search")?.value.toLowerCase() || "";
 
   container.innerHTML = "";
 
-  menuData.forEach((item) => {
-    if (
-      (currentCategory === "all" || item.category === currentCategory) &&
-      item.name.toLowerCase().includes(searchTerm)
-    ) {
-      const card = document.createElement("div");
-      card.className = "food-item card";
+  const filteredItems = menuData.filter((item) => {
+    const matchesCategory =
+      currentCategory === "all" || item.category === currentCategory;
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm);
+    return matchesCategory && matchesSearch;
+  });
 
-      card.innerHTML = `
-          <img src="${item.image}" class="card-img-top" alt="${item.name}">
-          <div class="card-body">
-            <h5 class="card-title">${item.name}</h5>
-            <p class="card-text">${item.description}</p>
-            <p class="card-text fw-bold">₹${item.price}</p>
-            <button class="btn btn-success" onclick="addToCart('${item.name}', ${item.price})">Add to Cart</button>
-          </div>
-        `;
-      container.appendChild(card);
-    }
+  if (filteredItems.length === 0) {
+    container.innerHTML =
+      '<div class="col-12 text-center py-5"><h5>No items found</h5></div>';
+    return;
+  }
+
+  filteredItems.forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "food-item card mb-4";
+    card.style.minHeight = "400px";
+
+    card.innerHTML = `
+      <img src="${item.image}" class="card-img-top" alt="${
+      item.name
+    }" style="height: 200px; object-fit: cover;">
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title">${item.name}</h5>
+        <p class="card-text text-muted">${item.description}</p>
+        <div class="mt-auto">
+          <p class="card-text fw-bold">₹${item.price}</p>
+          <button class="btn btn-success w-100" onclick="addToCart('${item.name.replace(
+            /'/g,
+            "\\'"
+          )}', ${item.price}, '${item.image.replace(/'/g, "\\'")}')">
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
   });
 }
 
-function addToCart(name, price) {
-  const index = cart.findIndex((item) => item.name === name);
-  if (index > -1) {
-    cart[index].quantity += 1;
+// Add item to cart
+function addToCart(name, price, image) {
+  const existingItem = cart.find((item) => item.name === name);
+
+  if (existingItem) {
+    existingItem.quantity += 1;
   } else {
-    cart.push({ name, price, quantity: 1 });
+    cart.push({
+      name,
+      price,
+      quantity: 1,
+      image: image || "images/default-food.jpg",
+    });
   }
+
   saveCart();
-  updateCartUI();
+  updateCartCount();
+  showToast(`${name} added to cart`);
+
+  // If on cart page, refresh the view
+  if (document.getElementById("cart-items")) {
+    renderCartPage();
+  }
 }
 
-function changeQuantity(name, delta) {
+// Render cart page
+function renderCartPage() {
+  const cartContainer = document.getElementById("cart-items");
+  const totalElement = document.getElementById("total");
+  const subtotalElement = document.getElementById("subtotal");
+  const deliveryFee = 50;
+  let subtotal = 0;
+
+  cartContainer.innerHTML = "";
+
+  if (cart.length === 0) {
+    cartContainer.innerHTML = `
+      <div class="empty-cart text-center py-5">
+        <i class="fas fa-shopping-cart fa-4x mb-3 text-muted"></i>
+        <h4>Your cart is empty</h4>
+        <a href="index.html" class="btn btn-primary mt-3">Browse Menu</a>
+      </div>
+    `;
+    subtotalElement.textContent = "0";
+    totalElement.textContent = "0";
+    document.getElementById("checkout-btn").disabled = true;
+    return;
+  }
+
+  cart.forEach((item) => {
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
+
+    const cartItem = document.createElement("div");
+    cartItem.className = "cart-item mb-3 p-3 border rounded";
+    cartItem.innerHTML = `
+      <div class="row align-items-center">
+        <div class="col-md-2 col-4">
+          <img src="${item.image}" alt="${
+      item.name
+    }" class="img-fluid rounded" style="height: 80px; width: 100%; object-fit: cover;">
+        </div>
+        <div class="col-md-4 col-8">
+          <h6 class="mb-1">${item.name}</h6>
+          <p class="mb-1 text-muted">₹${item.price} each</p>
+        </div>
+        <div class="col-md-3 col-6 mt-md-0 mt-2">
+          <div class="input-group">
+            <button class="btn btn-outline-secondary" type="button" onclick="updateCartItem('${item.name.replace(
+              /'/g,
+              "\\'"
+            )}', -1)">
+              <i class="fas fa-minus"></i>
+            </button>
+            <input type="text" class="form-control text-center" value="${
+              item.quantity
+            }" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="updateCartItem('${item.name.replace(
+              /'/g,
+              "\\'"
+            )}', 1)">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-2 col-4 text-md-center mt-md-0 mt-2">
+          <span class="fw-bold">₹${itemTotal}</span>
+        </div>
+        <div class="col-md-1 col-2 text-end mt-md-0 mt-2">
+          <button class="btn btn-sm btn-danger" onclick="removeCartItem('${item.name.replace(
+            /'/g,
+            "\\'"
+          )}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+    cartContainer.appendChild(cartItem);
+  });
+
+  subtotalElement.textContent = subtotal;
+  totalElement.textContent = subtotal + deliveryFee;
+  document.getElementById("checkout-btn").disabled = false;
+}
+
+// Update cart item quantity
+function updateCartItem(name, delta) {
   const item = cart.find((i) => i.name === name);
   if (item) {
     item.quantity += delta;
-    if (item.quantity <= 0) removeItem(name);
-    else {
+
+    if (item.quantity <= 0) {
+      removeCartItem(name);
+    } else {
       saveCart();
-      updateCartUI();
+      updateCartCount();
+      renderCartPage();
     }
   }
 }
 
-function removeItem(name) {
+// Remove item from cart
+function removeCartItem(name) {
   cart = cart.filter((item) => item.name !== name);
   saveCart();
-  updateCartUI();
+  updateCartCount();
+  renderCartPage();
+  showToast(`${name} removed from cart`);
 }
 
+// Save cart to localStorage
 function saveCart() {
   localStorage.setItem("cart", JSON.stringify(cart));
 }
 
-function updateCartUI() {
-  const cartDiv = document.getElementById("cart-items");
-  const totalSpan = document.getElementById("total");
-  cartDiv.innerHTML = "";
-  let total = 0;
+// Update cart count in navbar
+function updateCartCount() {
+  const cartCountElements = document.querySelectorAll(".cart-count");
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  cart.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "cart-item";
-    div.innerHTML = `
-        <span>${item.name} (₹${item.price})</span>
-        <span>
-          <button onclick="changeQuantity('${item.name}', -1)">−</button>
-          ${item.quantity}
-          <button onclick="changeQuantity('${item.name}', 1)">+</button>
-          <button onclick="removeItem('${item.name}')">🗑️</button>
-        </span>
-      `;
-    cartDiv.appendChild(div);
-    total += item.price * item.quantity;
+  cartCountElements.forEach((element) => {
+    element.textContent = totalItems;
+    element.style.display = totalItems > 0 ? "block" : "none";
   });
+}
 
-  totalSpan.textContent = total;
+// Show toast notification
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast show position-fixed bottom-0 end-0 m-3";
+  toast.style.zIndex = "1100";
+  toast.innerHTML = `
+    <div class="toast-header bg-primary text-white">
+      <strong class="me-auto">KrishKitchen</strong>
+      <button type="button" class="btn-close btn-close-white" onclick="this.parentElement.parentElement.remove()"></button>
+    </div>
+    <div class="toast-body">${message}</div>
+  `;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }
 
 // Filter by category
@@ -248,37 +389,71 @@ function filterCategory(category) {
 }
 
 // Search event
-document.getElementById("search").addEventListener("input", renderMenu);
+document.getElementById("search")?.addEventListener("input", renderMenu);
 
 // Checkout form
-function showCheckout() {
-  document.getElementById("checkout-form").classList.remove("hidden");
+function showCheckoutForm() {
+  document.getElementById("checkout-form").classList.remove("d-none");
+  document.getElementById("checkout-btn").classList.add("d-none");
   window.scrollTo(0, document.body.scrollHeight);
 }
 
-function submitOrder(e) {
+// Submit order
+document.getElementById("order-form")?.addEventListener("submit", function (e) {
   e.preventDefault();
+
   const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
   const address = document.getElementById("address").value.trim();
 
-  if (!name || !address) {
-    alert("Please fill out all fields.");
+  if (!name || !phone || !address) {
+    showToast("Please fill all required fields");
     return;
   }
 
-  alert(`Thank you, ${name}! Your order has been placed.`);
+  // Create order object
+  const order = {
+    customer: { name, phone, address },
+    items: [...cart],
+    total: document.getElementById("total").textContent,
+    date: new Date().toLocaleString(),
+  };
+
+  // In a real app, you would send this to your backend
+  console.log("Order placed:", order);
+
+  // Show confirmation
+  alert(`Thank you, ${name}! Your order for ₹${order.total} has been placed.`);
+
+  // Clear cart
   cart = [];
   saveCart();
-  updateCartUI();
-  document.getElementById("checkout-form").classList.add("hidden");
-  e.target.reset();
-}
+  updateCartCount();
 
-// Dark Mode Toggle
-document.getElementById("theme-toggle").addEventListener("click", () => {
-  document.body.classList.toggle("dark");
+  // Reset form
+  this.reset();
+  document.getElementById("checkout-form").classList.add("d-none");
+  document.getElementById("checkout-btn").classList.remove("d-none");
+
+  // If on cart page, refresh view
+  if (document.getElementById("cart-items")) {
+    renderCartPage();
+  }
 });
 
-// Initial Load
-renderMenu();
-updateCartUI();
+// Dark Mode Toggle
+document.getElementById("theme-toggle")?.addEventListener("click", function () {
+  document.body.classList.toggle("dark"); // changed to match CSS
+  this.textContent = document.body.classList.contains("dark")
+    ? "Light Mode"
+    : "Dark Mode";
+
+  localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+});
+
+// Initialize dark mode if previously set
+if (localStorage.getItem("darkMode") === "true") {
+  document.body.classList.add("dark");
+  const toggleBtn = document.getElementById("theme-toggle");
+  if (toggleBtn) toggleBtn.textContent = "Light Mode";
+}

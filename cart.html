@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Krish Food Order</title>
+    <title>Your Cart - KrishKitchen</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -25,7 +25,7 @@
   </head>
 
   <body>
-    <!-- Bootstrap Navbar -->
+    <!-- Same Navbar as index.html -->
     <nav class="navbar navbar-expand-lg custom-navbar mb-4">
       <div class="container-fluid">
         <a class="navbar-brand" href="index.html">
@@ -57,54 +57,9 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarMain">
-          <ul class="navbar-nav flex-row flex-wrap me-auto">
-            <li class="nav-item me-2">
-              <button
-                class="btn btn-outline-light"
-                onclick="filterCategory('all')"
-              >
-                All
-              </button>
-            </li>
-            <li class="nav-item me-2">
-              <button
-                class="btn btn-outline-light"
-                onclick="filterCategory('Pizza')"
-              >
-                Pizza
-              </button>
-            </li>
-            <li class="nav-item me-2">
-              <button
-                class="btn btn-outline-light"
-                onclick="filterCategory('Burger')"
-              >
-                Burger
-              </button>
-            </li>
-            <li class="nav-item me-2">
-              <button
-                class="btn btn-outline-light"
-                onclick="filterCategory('Drinks')"
-              >
-                Drinks
-              </button>
-            </li>
-            <li class="nav-item me-2">
-              <button
-                class="btn btn-outline-light"
-                onclick="filterCategory('South Indian')"
-              >
-                South Indian
-              </button>
-            </li>
-            <li class="nav-item me-2">
-              <button
-                class="btn btn-outline-light"
-                onclick="filterCategory('Combo')"
-              >
-                Combo Offers
-              </button>
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link text-white" href="index.html">Back to Menu</a>
             </li>
           </ul>
 
@@ -127,14 +82,68 @@
       </div>
     </nav>
 
-    <main>
-      <!-- Food Menu -->
-      <section id="food-menu">
-        <h2 class="mb-3">Our Menu</h2>
-        <div class="menu-items" id="menu-items">
-          <!-- JS will populate items -->
+    <main class="container">
+      <h1 class="mb-4">Your Cart</h1>
+
+      <div id="cart-items" class="mb-4">
+        <!-- Cart items will be populated here -->
+      </div>
+
+      <div class="cart-summary p-3 bg-light rounded">
+        <h4>Order Summary</h4>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Subtotal:</span>
+          <span>₹<span id="subtotal">0</span></span>
         </div>
-      </section>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Delivery Fee:</span>
+          <span>₹<span id="delivery-fee">50</span></span>
+        </div>
+        <hr />
+        <div class="d-flex justify-content-between">
+          <strong>Total:</strong>
+          <strong>₹<span id="total">50</span></strong>
+        </div>
+      </div>
+
+      <button
+        id="checkout-btn"
+        class="btn btn-primary btn-lg mt-4 w-100"
+        onclick="showCheckoutForm()"
+      >
+        Proceed to Checkout
+      </button>
+
+      <!-- Checkout Form (initially hidden) -->
+      <div id="checkout-form" class="mt-4 p-4 bg-light rounded d-none">
+        <h3 class="mb-3">Checkout Information</h3>
+        <form id="order-form">
+          <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="name" required />
+          </div>
+          <div class="mb-3">
+            <label for="phone" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="phone" required />
+          </div>
+          <div class="mb-3">
+            <label for="address" class="form-label">Delivery Address</label>
+            <textarea
+              class="form-control"
+              id="address"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="notes" class="form-label">Order Notes (Optional)</label>
+            <textarea class="form-control" id="notes" rows="2"></textarea>
+          </div>
+          <button type="submit" class="btn btn-success w-100">
+            Place Order
+          </button>
+        </form>
+      </div>
     </main>
 
     <!-- Bootstrap JS Bundle -->
