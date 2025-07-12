@@ -137,7 +137,7 @@ const menuData = [
     name: "Burger + Fries + Coke",
     price: 199,
     category: "Combo",
-    image: "images/Burger + Fries + Coke.jpg",
+    image: "images/Burger Fries Coke.jpg",
     description: "Combo meal with burger, fries, and chilled coke.",
   },
   {
