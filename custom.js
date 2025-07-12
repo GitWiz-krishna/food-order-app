@@ -1,3 +1,8 @@
+/* ====================== */
+/* MENU DATA DEFINITION */
+/* ====================== */
+
+// Array containing all menu items with their details
 const menuData = [
   {
     name: "Margherita Pizza",
@@ -150,65 +155,316 @@ const menuData = [
     description: "Traditional thali with rice, curries, curd & sweet.",
   },
 ];
-
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+/* ====================== */
+/* CORE SYSTEM VARIABLES */
+/* ====================== */
 let currentCategory = "all";
 
-// DOM Content Loaded
-document.addEventListener("DOMContentLoaded", function () {
-  // Initialize based on current page
-  if (document.getElementById("menu-items")) {
-    renderMenu();
-  }
+/* ====================== */
+/* OPTIMIZED THEME SYSTEM */
+/* ====================== */
+const ThemeManager = {
+  init() {
+    this.applyTheme(localStorage.getItem("darkMode") === "true");
+    document
+      .getElementById("theme-toggle")
+      ?.addEventListener("click", () => this.toggle());
+  },
+  toggle() {
+    const isDark = !document.body.classList.contains("dark");
+    this.applyTheme(isDark);
+    localStorage.setItem("darkMode", isDark);
+  },
+  applyTheme(isDark) {
+    document.body.classList.toggle("dark", isDark);
+    const toggleBtn = document.getElementById("theme-toggle");
+    if (toggleBtn) toggleBtn.textContent = isDark ? "Light Mode" : "Dark Mode";
+    document.querySelectorAll(".cart-count").forEach((el) => {
+      el.style.backgroundColor = isDark ? "#ff6b6b" : "#dc3545";
+    });
+  },
+};
 
-  if (document.getElementById("cart-items")) {
-    renderCartPage();
-  }
+/* ====================== */
+/* CART MANAGEMENT SYSTEM */
+/* ====================== */
+const CartManager = {
+  cart: JSON.parse(localStorage.getItem("cart")) || [],
 
-  updateCartCount();
-});
+  init() {
+    this.updateCartCount();
+  },
 
-// Render food menu
+  addToCart(name, price, image) {
+    const existingItem = this.cart.find((item) => item.name === name);
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      this.cart.push({
+        name,
+        price,
+        quantity: 1,
+        image: image || "images/default-food.jpg",
+      });
+    }
+    this.saveCart();
+    this.updateCartCount();
+    Toast.show(`${name} added to cart`);
+    if (document.getElementById("cart-items")) {
+      this.renderCartPage();
+    }
+  },
+
+  updateCartItem(name, delta) {
+    const item = this.cart.find((i) => i.name === name);
+    if (item) {
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        this.removeCartItem(name);
+      } else {
+        this.saveCart();
+        this.updateCartCount();
+        this.renderCartPage();
+      }
+    }
+  },
+
+  removeCartItem(name) {
+    this.cart = this.cart.filter((item) => item.name !== name);
+    this.saveCart();
+    this.updateCartCount();
+    this.renderCartPage();
+    Toast.show(`${name} removed from cart`);
+  },
+
+  renderCartPage() {
+    const cartContainer = document.getElementById("cart-items");
+    if (!cartContainer) return;
+
+    const totalElement = document.getElementById("total");
+    const subtotalElement = document.getElementById("subtotal");
+    const deliveryFee = 50;
+    let subtotal = 0;
+
+    cartContainer.innerHTML = "";
+
+    if (this.cart.length === 0) {
+      cartContainer.innerHTML = `
+        <div class="empty-cart text-center py-5">
+          <i class="fas fa-shopping-cart fa-4x mb-3 text-muted"></i>
+          <h4>Your cart is empty</h4>
+          <a href="index.html" class="btn btn-primary mt-3">Browse Menu</a>
+        </div>
+      `;
+      subtotalElement.textContent = "0";
+      totalElement.textContent = "0";
+      document.getElementById("checkout-btn").disabled = true;
+      return;
+    }
+
+    this.cart.forEach((item) => {
+      const itemTotal = item.price * item.quantity;
+      subtotal += itemTotal;
+      const cartItem = document.createElement("div");
+      cartItem.className = "cart-item mb-3 p-3 border rounded";
+      cartItem.innerHTML = `
+        <div class="row align-items-center">
+          <div class="col-md-2 col-4">
+            <img src="${item.image}" alt="${item.name}" class="img-fluid rounded" style="height: 80px; width: 100%; object-fit: cover;">
+          </div>
+          <div class="col-md-4 col-8">
+            <h6 class="mb-1">${item.name}</h6>
+            <p class="mb-1 text-muted">₹${item.price} each</p>
+          </div>
+          <div class="col-md-3 col-6 mt-md-0 mt-2">
+            <div class="input-group">
+              <button class="btn btn-outline-secondary" type="button" data-action="update-quantity" data-item-name="${item.name}" data-delta="-1"><i class="fas fa-minus"></i></button>
+              <input type="text" class="form-control text-center" value="${item.quantity}" readonly>
+              <button class="btn btn-outline-secondary" type="button" data-action="update-quantity" data-item-name="${item.name}" data-delta="1"><i class="fas fa-plus"></i></button>
+            </div>
+          </div>
+          <div class="col-md-2 col-4 text-md-center mt-md-0 mt-2">
+            <span class="fw-bold">₹${itemTotal}</span>
+          </div>
+          <div class="col-md-1 col-2 text-end mt-md-0 mt-2">
+            <button class="btn btn-sm btn-danger" data-action="remove-item" data-item-name="${item.name}"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `;
+      cartContainer.appendChild(cartItem);
+    });
+
+    subtotalElement.textContent = subtotal;
+    totalElement.textContent = subtotal + deliveryFee;
+    document.getElementById("checkout-btn").disabled = false;
+  },
+
+  updateCartCount() {
+    const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+    const counters = document.querySelectorAll(".cart-count");
+    counters.forEach((counter) => {
+      counter.textContent = totalItems;
+      counter.style.display = totalItems > 0 ? "inline-block" : "none";
+    });
+    localStorage.setItem("cartCount", totalItems);
+  },
+
+  saveCart() {
+    localStorage.setItem("cart", JSON.stringify(this.cart));
+    localStorage.setItem("cartUpdated", Date.now());
+  },
+};
+
+/* ====================== */
+/* EVENT MANAGEMENT SYSTEM */
+/* ====================== */
+const EventSystem = {
+  init() {
+    document.addEventListener("click", (e) => this.handleClick(e));
+    window.addEventListener("storage", (e) => this.handleStorage(e));
+    document
+      .getElementById("search")
+      ?.addEventListener("input", () => renderMenu());
+    document
+      .getElementById("order-form")
+      ?.addEventListener("submit", (e) => this.handleOrderSubmit(e));
+  },
+
+  handleClick(e) {
+    if (e.target.closest('[data-action="add-to-cart"]')) {
+      const card = e.target.closest(".food-item");
+      const name = card.dataset.name;
+      const price = parseFloat(card.dataset.price);
+      const image = card.dataset.image;
+      CartManager.addToCart(name, price, image);
+    }
+
+    if (e.target.closest('[data-action="update-quantity"]')) {
+      const btn = e.target.closest('[data-action="update-quantity"]');
+      const name = btn.dataset.itemName;
+      const delta = parseInt(btn.dataset.delta);
+      CartManager.updateCartItem(name, delta);
+    }
+
+    if (e.target.closest('[data-action="remove-item"]')) {
+      const btn = e.target.closest('[data-action="remove-item"]');
+      const name = btn.dataset.itemName;
+      CartManager.removeCartItem(name);
+    }
+
+    if (e.target.closest("#checkout-btn")) {
+      this.showCheckoutForm();
+    }
+  },
+
+  handleStorage(e) {
+    if (e.key === "cart") {
+      CartManager.cart = JSON.parse(e.newValue) || [];
+      CartManager.updateCartCount();
+      if (document.getElementById("cart-items")) {
+        CartManager.renderCartPage();
+      }
+    }
+    if (e.key === "darkMode") {
+      ThemeManager.applyTheme(e.newValue === "true");
+    }
+  },
+
+  showCheckoutForm() {
+    document.getElementById("checkout-form").classList.remove("d-none");
+    document.getElementById("checkout-btn").classList.add("d-none");
+    window.scrollTo(0, document.body.scrollHeight);
+  },
+
+  handleOrderSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+    if (!name || !phone || !address) {
+      Toast.show("Please fill all required fields", "error");
+      return;
+    }
+    const order = {
+      customer: { name, phone, address },
+      items: [...CartManager.cart],
+      total: document.getElementById("total").textContent,
+      date: new Date().toLocaleString(),
+    };
+    console.log("Order placed:", order);
+    Toast.show(`Thank you, ${name}! Your order has been placed.`);
+    CartManager.cart = [];
+    CartManager.saveCart();
+    CartManager.updateCartCount();
+    e.target.reset();
+    document.getElementById("checkout-form").classList.add("d-none");
+    document.getElementById("checkout-btn").classList.remove("d-none");
+    if (document.getElementById("cart-items")) {
+      CartManager.renderCartPage();
+    }
+  },
+};
+
+/* ====================== */
+/* TOAST NOTIFICATION SYSTEM */
+/* ====================== */
+const Toast = {
+  show(message, type = "success") {
+    const toast = document.createElement("div");
+    toast.className = `toast show toast-${type}`;
+    toast.innerHTML = `
+      <div class="toast-header">
+        <strong class="me-auto">KrishKitchen</strong>
+        <button class="btn-close" data-dismiss="toast"></button>
+      </div>
+      <div class="toast-body">${message}</div>
+    `;
+    document.body.appendChild(toast);
+    toast
+      .querySelector('[data-dismiss="toast"]')
+      .addEventListener("click", () => this.hide(toast));
+    setTimeout(() => this.hide(toast), 3000);
+  },
+  hide(toast) {
+    toast.classList.add("fade");
+    setTimeout(() => toast.remove(), 150);
+  },
+};
+
+/* ====================== */
+/* MENU RENDERING FUNCTION */
+/* ====================== */
 function renderMenu() {
   const container = document.getElementById("menu-items");
   const searchTerm =
     document.getElementById("search")?.value.toLowerCase() || "";
-
   container.innerHTML = "";
-
   const filteredItems = menuData.filter((item) => {
     const matchesCategory =
       currentCategory === "all" || item.category === currentCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchTerm);
     return matchesCategory && matchesSearch;
   });
-
   if (filteredItems.length === 0) {
     container.innerHTML =
       '<div class="col-12 text-center py-5"><h5>No items found</h5></div>';
     return;
   }
-
   filteredItems.forEach((item) => {
     const card = document.createElement("div");
     card.className = "food-item card mb-4";
     card.style.minHeight = "400px";
-
+    card.dataset.name = item.name;
+    card.dataset.price = item.price;
+    card.dataset.image = item.image;
     card.innerHTML = `
-      <img src="${item.image}" class="card-img-top" alt="${
-      item.name
-    }" style="height: 200px; object-fit: cover;">
+      <img src="${item.image}" class="card-img-top" alt="${item.name}" style="height: 200px; object-fit: cover;">
       <div class="card-body d-flex flex-column">
         <h5 class="card-title">${item.name}</h5>
         <p class="card-text text-muted">${item.description}</p>
         <div class="mt-auto">
           <p class="card-text fw-bold">₹${item.price}</p>
-          <button class="btn btn-success w-100" onclick="addToCart('${item.name.replace(
-            /'/g,
-            "\\'"
-          )}', ${item.price}, '${item.image.replace(/'/g, "\\'")}')">
-            Add to Cart
-          </button>
+          <button class="btn btn-success w-100" data-action="add-to-cart">Add to Cart</button>
         </div>
       </div>
     `;
@@ -216,244 +472,18 @@ function renderMenu() {
   });
 }
 
-// Add item to cart
-function addToCart(name, price, image) {
-  const existingItem = cart.find((item) => item.name === name);
-
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    cart.push({
-      name,
-      price,
-      quantity: 1,
-      image: image || "images/default-food.jpg",
-    });
-  }
-
-  saveCart();
-  updateCartCount();
-  showToast(`${name} added to cart`);
-
-  // If on cart page, refresh the view
-  if (document.getElementById("cart-items")) {
-    renderCartPage();
-  }
-}
-
-// Render cart page
-function renderCartPage() {
-  const cartContainer = document.getElementById("cart-items");
-  const totalElement = document.getElementById("total");
-  const subtotalElement = document.getElementById("subtotal");
-  const deliveryFee = 50;
-  let subtotal = 0;
-
-  cartContainer.innerHTML = "";
-
-  if (cart.length === 0) {
-    cartContainer.innerHTML = `
-      <div class="empty-cart text-center py-5">
-        <i class="fas fa-shopping-cart fa-4x mb-3 text-muted"></i>
-        <h4>Your cart is empty</h4>
-        <a href="index.html" class="btn btn-primary mt-3">Browse Menu</a>
-      </div>
-    `;
-    subtotalElement.textContent = "0";
-    totalElement.textContent = "0";
-    document.getElementById("checkout-btn").disabled = true;
-    return;
-  }
-
-  cart.forEach((item) => {
-    const itemTotal = item.price * item.quantity;
-    subtotal += itemTotal;
-
-    const cartItem = document.createElement("div");
-    cartItem.className = "cart-item mb-3 p-3 border rounded";
-    cartItem.innerHTML = `
-      <div class="row align-items-center">
-        <div class="col-md-2 col-4">
-          <img src="${item.image}" alt="${
-      item.name
-    }" class="img-fluid rounded" style="height: 80px; width: 100%; object-fit: cover;">
-        </div>
-        <div class="col-md-4 col-8">
-          <h6 class="mb-1">${item.name}</h6>
-          <p class="mb-1 text-muted">₹${item.price} each</p>
-        </div>
-        <div class="col-md-3 col-6 mt-md-0 mt-2">
-          <div class="input-group">
-            <button class="btn btn-outline-secondary" type="button" onclick="updateCartItem('${item.name.replace(
-              /'/g,
-              "\\'"
-            )}', -1)">
-              <i class="fas fa-minus"></i>
-            </button>
-            <input type="text" class="form-control text-center" value="${
-              item.quantity
-            }" readonly>
-            <button class="btn btn-outline-secondary" type="button" onclick="updateCartItem('${item.name.replace(
-              /'/g,
-              "\\'"
-            )}', 1)">
-              <i class="fas fa-plus"></i>
-            </button>
-          </div>
-        </div>
-        <div class="col-md-2 col-4 text-md-center mt-md-0 mt-2">
-          <span class="fw-bold">₹${itemTotal}</span>
-        </div>
-        <div class="col-md-1 col-2 text-end mt-md-0 mt-2">
-          <button class="btn btn-sm btn-danger" onclick="removeCartItem('${item.name.replace(
-            /'/g,
-            "\\'"
-          )}')">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      </div>
-    `;
-    cartContainer.appendChild(cartItem);
-  });
-
-  subtotalElement.textContent = subtotal;
-  totalElement.textContent = subtotal + deliveryFee;
-  document.getElementById("checkout-btn").disabled = false;
-}
-
-// Update cart item quantity
-function updateCartItem(name, delta) {
-  const item = cart.find((i) => i.name === name);
-  if (item) {
-    item.quantity += delta;
-
-    if (item.quantity <= 0) {
-      removeCartItem(name);
-    } else {
-      saveCart();
-      updateCartCount();
-      renderCartPage();
-    }
-  }
-}
-
-// Remove item from cart
-function removeCartItem(name) {
-  cart = cart.filter((item) => item.name !== name);
-  saveCart();
-  updateCartCount();
-  renderCartPage();
-  showToast(`${name} removed from cart`);
-}
-
-// Save cart to localStorage
-function saveCart() {
-  localStorage.setItem("cart", JSON.stringify(cart));
-}
-
-// Update cart count in navbar
-function updateCartCount() {
-  const cartCountElements = document.querySelectorAll(".cart-count");
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  cartCountElements.forEach((element) => {
-    element.textContent = totalItems;
-    element.style.display = totalItems > 0 ? "block" : "none";
-  });
-}
-
-// Show toast notification
-function showToast(message) {
-  const toast = document.createElement("div");
-  toast.className = "toast show position-fixed bottom-0 end-0 m-3";
-  toast.style.zIndex = "1100";
-  toast.innerHTML = `
-    <div class="toast-header bg-primary text-white">
-      <strong class="me-auto">KrishKitchen</strong>
-      <button type="button" class="btn-close btn-close-white" onclick="this.parentElement.parentElement.remove()"></button>
-    </div>
-    <div class="toast-body">${message}</div>
-  `;
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
-}
-
-// Filter by category
 function filterCategory(category) {
   currentCategory = category;
   renderMenu();
 }
 
-// Search event
-document.getElementById("search")?.addEventListener("input", renderMenu);
-
-// Checkout form
-function showCheckoutForm() {
-  document.getElementById("checkout-form").classList.remove("d-none");
-  document.getElementById("checkout-btn").classList.add("d-none");
-  window.scrollTo(0, document.body.scrollHeight);
-}
-
-// Submit order
-document.getElementById("order-form")?.addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const address = document.getElementById("address").value.trim();
-
-  if (!name || !phone || !address) {
-    showToast("Please fill all required fields");
-    return;
-  }
-
-  // Create order object
-  const order = {
-    customer: { name, phone, address },
-    items: [...cart],
-    total: document.getElementById("total").textContent,
-    date: new Date().toLocaleString(),
-  };
-
-  // In a real app, you would send this to your backend
-  console.log("Order placed:", order);
-
-  // Show confirmation
-  alert(`Thank you, ${name}! Your order for ₹${order.total} has been placed.`);
-
-  // Clear cart
-  cart = [];
-  saveCart();
-  updateCartCount();
-
-  // Reset form
-  this.reset();
-  document.getElementById("checkout-form").classList.add("d-none");
-  document.getElementById("checkout-btn").classList.remove("d-none");
-
-  // If on cart page, refresh view
-  if (document.getElementById("cart-items")) {
-    renderCartPage();
-  }
+/* ====================== */
+/* INITIALIZATION ON PAGE LOAD */
+/* ====================== */
+document.addEventListener("DOMContentLoaded", function () {
+  ThemeManager.init();
+  CartManager.init();
+  EventSystem.init();
+  if (document.getElementById("menu-items")) renderMenu();
+  if (document.getElementById("cart-items")) CartManager.renderCartPage();
 });
-
-// Dark Mode Toggle
-document.getElementById("theme-toggle")?.addEventListener("click", function () {
-  document.body.classList.toggle("dark"); // changed to match CSS
-  this.textContent = document.body.classList.contains("dark")
-    ? "Light Mode"
-    : "Dark Mode";
-
-  localStorage.setItem("darkMode", document.body.classList.contains("dark"));
-});
-
-// Initialize dark mode if previously set
-if (localStorage.getItem("darkMode") === "true") {
-  document.body.classList.add("dark");
-  const toggleBtn = document.getElementById("theme-toggle");
-  if (toggleBtn) toggleBtn.textContent = "Light Mode";
-}

@@ -1,17 +1,36 @@
-/* Base Reset */
+/* ==================== */
+/* BASE RESET & DEFAULTS */
+/* ==================== */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
+
+.nav-logo {
+  height: 60px;
+  width: auto;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
 body {
   font-family: "Segoe UI", sans-serif;
-  background: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%);
+  background-color: #ffffff;
   color: #333;
   padding: 20px;
   transition: background 0.3s, color 0.3s;
 }
 
+/* DARK MODE: force full dark body */
+body.dark {
+  background-color: #000000 !important;
+  color: #f8f9fa !important;
+}
+
+/* ============== */
+/* NAVIGATION BAR */
+/* ============== */
 .custom-navbar {
   background-color: #4b9cd3;
 }
@@ -27,10 +46,27 @@ body {
   color: #fff;
 }
 
+/* DARK MODE BUTTON FIX */
+body.dark .btn-outline-light {
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  background-color: transparent !important;
+  border: 1px solid #ffffff !important;
+}
+
+.btn-outline-light:hover {
+  background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+  border-color: #fff;
+  color: #fff;
+}
+
+/* ============= */
+/* BUTTON STYLES */
+/* ============= */
 .btn-success,
 .btn-primary,
 .btn-warning {
-  background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%) !important;
+  background-color: #4b9cd3;
   border: none;
   color: #fff;
 }
@@ -41,29 +77,18 @@ body {
   opacity: 0.9;
 }
 
-body.dark {
-  background: #121212;
-  color: #f0f0f0;
-}
-
-body.dark .custom-navbar {
-  background: #222;
-}
-
-/* Dark Mode */
-body.dark {
-  background-color: #121212;
-  color: #f0f0f0;
-}
-
-/* Menu Layout */
+/* ============ */
+/* MAIN LAYOUT */
+/* ============ */
 main {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* Food Menu Section */
+/* ============ */
+/* MENU SECTION */
+/* ============ */
 #food-menu {
   flex: 1;
   min-width: 300px;
@@ -71,7 +96,7 @@ main {
 
 .menu-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
 
@@ -84,7 +109,6 @@ main {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Slight lift + shadow on hover */
 .food-item:hover {
   transform: translateY(-6px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
@@ -110,7 +134,9 @@ main {
   margin-top: 8px;
 }
 
-/* Cart Section */
+/* ============ */
+/* CART SECTION */
+/* ============ */
 #cart {
   flex: 1;
   min-width: 300px;
@@ -142,7 +168,9 @@ main {
   border-radius: 3px;
 }
 
-/* Checkout Form */
+/* ================= */
+/* CHECKOUT FORM */
+/* ================= */
 #checkout-form {
   max-width: 500px;
   margin: 20px auto;
@@ -152,7 +180,8 @@ main {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-#checkout-form input {
+#checkout-form input,
+#checkout-form textarea {
   width: 100%;
   padding: 10px;
   margin: 8px 0;
@@ -165,62 +194,82 @@ main {
   margin-top: 10px;
 }
 
-/* Hidden Utility */
+/* ================ */
+/* UTILITY CLASSES */
+/* ================ */
 .hidden {
   display: none;
 }
 
-/* Dark Mode Overrides */
-/* Dark Mode Overrides */
-body.dark .food-item,
+/* ================= */
+/* CART COUNTER */
+/* ================= */
+.cart-count {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 9px;
+  background-color: #dc3545;
+  color: white;
+  vertical-align: top;
+  transition: all 0.3s ease;
+}
+
+.cart-count.pop {
+  animation: pop 0.3s ease;
+}
+
+.cart-count.fade-out {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ====================== */
+/* DARK MODE OVERRIDES */
+/* ====================== */
+body.dark {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.dark .custom-navbar {
+  background-color: #1a1a1a !important;
+}
+
+body.dark .food-item {
+  background-color: #2d2d2d !important;
+  color: #f8f9fa !important;
+  border: 1px solid #ffffff !important; /* White border */
+}
+
 body.dark #cart,
 body.dark #checkout-form,
 body.dark .cart-summary,
 body.dark .card,
 body.dark .card-body {
-  background-color: #222;
-  color: #fff;
-}
-
-/* Card text and descriptions */
-body.dark .food-item p,
-body.dark .card p,
-body.dark .card-title,
-body.dark .card-text {
-  color: #f8f9fa;
-}
-
-/* Highlight food descriptions if needed */
-body.dark .food-item p {
-  color: #90ee90;
-}
-
-/* Cart summary strong text */
-body.dark .cart-summary strong {
-  color: #ffffff;
-}
-
-/* Buttons and inputs */
-body.dark .btn,
-body.dark input {
-  background-color: #333 !important;
-  color: #fff !important;
+  background-color: #2d2d2d !important;
+  color: #f8f9fa !important;
   border-color: #444 !important;
 }
 
-.menu-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-}
-.food-item.card {
-  height: 100%;
-}
-.card img {
-  height: 180px;
-  object-fit: cover;
-}
-/* Fix for dark mode text not changing */
+body.dark .food-item p,
 body.dark .card p,
 body.dark .card-title,
 body.dark .card-text,
@@ -229,7 +278,127 @@ body.dark .cart-summary * {
   color: #f8f9fa !important;
 }
 
-body.dark .cart-summary {
-  background-color: #2d2d2d !important;
+body.dark .food-item p {
+  color: #90ee90 !important;
+}
+
+body.dark .cart-summary strong {
+  color: #ffffff !important;
+}
+
+body.dark .btn,
+body.dark input,
+body.dark textarea {
+  background-color: #333 !important;
+  color: #fff !important;
   border-color: #444 !important;
+}
+
+body.dark input,
+body.dark textarea {
+  background-color: #2a2a2a !important;
+  color: #fff !important;
+  border: 1px solid #555 !important;
+}
+
+body.dark .cart-count {
+  background-color: #ff6b6b !important;
+  color: #fff !important;
+}
+
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark h5,
+body.dark h6,
+body.dark p,
+body.dark span,
+body.dark label,
+body.dark .form-label,
+body.dark .cart-item h6,
+body.dark .cart-item p,
+body.dark .cart-item span,
+body.dark .cart-summary span,
+body.dark .cart-summary strong {
+  color: #f8f9fa !important;
+}
+
+body.dark .cart-item {
+  background-color: #2d2d2d !important;
+  border: 1px solid #444 !important;
+}
+
+body.dark .cart-item input,
+body.dark .cart-item button {
+  background-color: #333 !important;
+  color: #fff !important;
+  border-color: #555 !important;
+}
+
+/* ============ */
+/* TOAST STYLES */
+/* ============ */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1100;
+  transition: opacity 0.15s ease;
+  width: 300px;
+}
+
+.toast.fade {
+  opacity: 0;
+}
+
+.toast-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.toast-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+/* ============================= */
+/* DARK MODE: FULL NAVBAR BORDER & BUTTON FIX */
+/* ============================= */
+body.dark .custom-navbar {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff !important;
+}
+
+body.dark .custom-navbar .btn-outline-light {
+  color: #ffffff !important;
+  background-color: transparent !important;
+  border: 1px solid #ffffff !important;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+body.dark .custom-navbar .btn-outline-light:hover {
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ) !important; /* slight white tint */
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+}
+/* Force white border on food cards in dark mode */
+body.dark .food-item {
+  border: 1px solid #ffffff !important;
+}
+/* Dark Mode: Add to Cart Button Style */
+body.dark .food-item button {
+  background-color: #28a745 !important; /* Green */
+  color: #fff !important;
+  border: none !important;
+}
+
+body.dark .food-item button:hover {
+  background-color: #218838 !important; /* Darker green */
+  color: #fff !important;
 }
